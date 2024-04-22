@@ -16,6 +16,8 @@ This semester, you've learned how to implement real-time robotics software on a 
 
 Now, your team will synthesize all that you've learned to design a competitive entry for the *2024 RSS Final Challenge*! 
 
+<img src="media/Lakitu_750px.png" width="300"/>
+
 ### 3, 2, 1, GO!
 
 You have been perfecting your racecar for the last 3 months. Now it's time to test your racing skills! You will be tested on two tracks: Mario Circuit and Luigi’s Mansion. These two circuits will test you on your speed, handling, and planning. 
@@ -144,7 +146,7 @@ Here are some things you may consider in developing your approach:
 - How should the speed of your car be adjusted as you detect a stop sign, decide it is close enough, and turn corners?
 - The stop sign detector is good, but not perfect. How might you account for this for robust city navigation?
 
-As always, your safety controller should be turned on for this portion of the Final Challenge as well, although the city will not damage the car should you collide with anything.
+As always, your safety controller should be turned on for this portion of the Final Challenge as well.
 
 
 ### Race Day!
@@ -177,11 +179,8 @@ You are encouraged to build your solution on code written in previous labs! If y
 
 ### Part B: City Driving Challenge
 
-*How many stop signs will there be on race day?*
-* 1-2
+*How far should the car stop before the stop lights and stop signs?*
+* The front of your car must stop between .5-1 meters in front of the stop lights or stop signs to receive credit for the stop.
 
-*How far should the car stop before the stop sign?*
-* The front of your car must stop between .75-1 meters in front of the stop sign to receive credit for the stop. On race day, there will be tape on the ground so we can check if your car has stopped at the correct distance. Stop signs will all be the same size as the ones at lab. They will always be perpendicular to the road and not visible from other sections of the city. 
-
-*How long does the car need to stop for?*
+*How long does the car need to stop for in front of stop lights and stop signs?*
 * There is no time requirement, but your car must come to a **full stop** (no California stops!).
