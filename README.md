@@ -2,7 +2,7 @@
 |---------------|----------------------------------------------------------------------------|
 | Race Day | Saturday, May 11th 11AM - 2PM EST |
 | Code Pushed to Github  | Saturday, May 11th 1PM EST |
-| Briefing (15 min presentation + 5 min Q&A) OR Report ([github pages](https://github.mit.edu/rss/website2021)) | Monday, May 13th at 1:00PM EST (NB: deadline is for briefing slides, briefings are from 3-5pm) |
+| Briefing (15 min presentation + 5 min Q&A) AND Report ([github pages](https://github.mit.edu/rss/website2021)) | Monday, May 13th at 1:00PM EST (NB: deadline is for briefing slides, briefings are from 3-5pm) |
 | [Team Member Assessment](https://forms.gle/z4t7jNufTrGH2JX58)  | Monday, May 13th at 11:59PM EST |
 
 # Final Challenge 2024
@@ -66,9 +66,9 @@ Formula for Penalities:
 `traffic_infractions` is the number of times the car passes a stop sign without coming to a full stop, stops at a non-stop sign, ignores a traffic light, cross over the central lane line, or hits a pedestrian. The maximum penalty you can receive for traffic infractions is 30 points. The `manual_assist` is the number of maneuvers (counted individually for turning a corner, stopping at a stop sign, resetting a car, etc.) that required manual teleop intervention. `seconds_over_baseline` will be calculated as the difference between a TA provided baseline to reach all 3 of the locations and your solution, with a maximum penalty of 30 points. The formula for calculating score and penalty values may change for fairness (Penalties may be decreased in severity for a clearly functioning solution, for example).
 
 
-## Briefing or Report
+## Briefing and Report
 
-**Your team will choose between completing a final briefing or report (you do not need to complete both).**
+**UPDATE!! Your team will have to comple both a final briefing and report.**
 
 ### Briefing Evaluation (see [technical briefing rubric](https://docs.google.com/document/d/1NmqQP7n1omI9bIshF1Y-MP70gfDkgEeoMjpWv8hjfsY/edit?usp=sharing) for grading details)
 When grading the Technical approach and Experimental evaluation portions of your briefing, we will be looking specifically for **illustrative videos of your car following the track lane and as well as executing city driving maneuvers.** Specifically, we would like videos highlighting:
