@@ -70,13 +70,13 @@ Formula for Penalities:
 
 **UPDATE!! Your team will have to comple both a final briefing and report.**
 
-### Briefing Evaluation (see [technical briefing rubric](https://docs.google.com/document/d/1NmqQP7n1omI9bIshF1Y-MP70gfDkgEeoMjpWv8hjfsY/edit?usp=sharing) for grading details)
+### Briefing Evaluation (see [technical briefing rubric](https://docs.google.com/document/d/1lnxUxRZfNqjPTQJviE9lZXZeJRkjo0jgXVWDIRKn3zA/edit?usp=sharing) for grading details)
 When grading the Technical approach and Experimental evaluation portions of your briefing, we will be looking specifically for **illustrative videos of your car following the track lane and as well as executing city driving maneuvers.** Specifically, we would like videos highlighting:
 - Visualization of lane / marker tracking and stable drive control within a lane
 - Stopping at stop signs and making turns through the course
 - Recovery of your car if it is outside of its assigned track lane
 
-### Report Evaluation (see [technical report rubric](https://docs.google.com/document/d/1B6l7vKJFN3CPPcMn8cKKArHUU_Bq_YUZ5KxKoP6qMk0/edit?usp=sharing) for grading details)
+### Report Evaluation (see [technical report rubric](https://docs.google.com/document/d/1YJQaLDbQkK_40tjnyvpr7shmo--zybM3aPJEfBUtxuw/edit?usp=sharing) for grading details)
 When grading the Technical approach and Experimental evaluation portions of your report, we will be looking specifically for the following items:
 
 - **Numerical evidence that your algorithms work in the form of charts/data**
