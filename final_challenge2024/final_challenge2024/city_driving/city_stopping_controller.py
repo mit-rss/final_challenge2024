@@ -6,20 +6,29 @@ from ackermann_msgs.msg import AckermannDriveStamped
 from visualization_msgs.msg import Marker
 from math import pi
 from std_msgs.msg import Float32
-from stop_msgs.msg import PixelLocation, PhysicalLocation
+from stop_msgs.msg import PhysicalLocation
 
 # from safety_controller_pkg.visualization_tools import VisualizationTools
 
 #basically our safety controller code but for stopsigns and stoplights
 
-class SafetyController(Node):
+class CityStoppingController(Node):
     def __init__(self):
         super().__init__("wall_follower") #<--- wut is this for again... T-T
+        self.create_timer(1.0, self.timer_callback)
         # Declare parameters to make them available for use
         # self.declare_parameter("scan_topic", "/scan")
         self.declare_parameter("drive_topic", "/drive") 
         self.declare_parameter("stop_topic","/drive")
         self.declare_parameter("base_frame", "/base_link")
+
+        #this is so fucking jank but i'm also. tired as fuck
+        #when stopping for stop sign, decrement this value
+        #when this countdown is done, wait for cooldown to decrement
+        #then reset both
+        self.ignore_stopsigns = False
+        self.stopsign_brake_time = 10 #can adjust i guess, plan to just decrement every time a drive command recieved
+        self.stopsign_cooldown = 10
         
 
         # Fetch constants from the ROS parameter server
@@ -55,8 +64,6 @@ class SafetyController(Node):
         self.get_logger().info("started up city stopping node")
 
 
-
-
     def log_drive_command(self,msg):
         """
         Keeps internal record of last drive command issued
@@ -65,7 +72,11 @@ class SafetyController(Node):
         """
         
         self.last_drive_command = msg
-        
+
+        #decrement stopsign cooldown if needed
+        if self.ignore_stopsigns:
+            self.stopsign_cooldown-=1
+
     def on_stopsign(self,msg):
         """
         Monitors for stop signs and publishes stop command for 2 seconds before moving on
@@ -78,30 +89,37 @@ class SafetyController(Node):
         msg:PhysicalLocation - relative physical location (x,y) of stop sign from car
         return:None - publishes directions to car if necessary
         """
-
-        
         
         speed = self.last_drive_command.drive.speed
         t_reac = .05 #frequency msgs are sent at
         u = 1.4 #coefficient of friction used for cars in charts
         grav = 9.8 
         total_stop_d = speed*t_reac + (speed**2)/(2*u*grav)
-        threshold = 1
+        threshold = 1 #can adjust until stops consistently at 0.5-1m from light
 
-        x = msg.x_pos
         y = msg.y_pos
 
         obj_dist = np.sqrt(x**2 + y**2)
 
-        if obj_dist <= (total_stop_d + threshold):
+        if obj_dist <= (total_stop_d + threshold) and self.stopsign_brake_time:
+            #start braking
             error_msg = Float32()
             error_msg.data = abs(obj_dist-(total_stop_d+threshold))/(total_stop_d+threshold)
             self.error_pub.publish(error_msg)
             self.stop_msg.header.stamp = self.get_clock().now().to_msg()
             self.stop_msg.drive.steering_angle = self.last_drive_command.drive.steering_angle
 
-            #TODO: find way to make it only stop for a bit and then continue on without reacting to same stop sign
+            #TODO: find way to make it come to a full stop and then continue on without reacting to same stop sign
             self.stop_pub.publish(self.stop_msg)
+            self.stopsign_brake_time -= 1 #stop for about one second (callback runs at 10Hz)
+        elif not self.stopsign_brake_time and self.stopsign_cooldown: #ignore stopsigns for about 1 second
+            self.ignore_stopsigns=True
+            # self.stopsign_cooldown-=1
+        else: #reset, ready to stopsign again
+            self.ignore_stopsigns = False
+            self.stopsign_brake_time=10
+            self.stopsign_cooldown=10
+            
 
     def on_stoplight(self,msg):
         """
@@ -135,12 +153,12 @@ class SafetyController(Node):
 
 def main():
     rclpy.init()
-    safety_controller = SafetyController()
+    city_stopping_controller = CityStoppingController()
     try:
-        rclpy.spin(safety_controller)
+        rclpy.spin(city_stopping_controller)
     except KeyboardInterrupt:
         pass
-    safety_controller.destroy_node()
+    city_stopping_controller.destroy_node()
     rclpy.shutdown()
 
 

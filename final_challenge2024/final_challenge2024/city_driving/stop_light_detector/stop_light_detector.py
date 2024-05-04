@@ -57,8 +57,8 @@ class StoplightDetector(Node):
         if (bounding_box[0] + bounding_box[1] + bounding_box[2] + bounding_box[3]) !=0:
             circle_height = bounding_box[3]-bounding_box[1]
 
-            #base of stoplight is about 6 light circles from top of red light (i vibed it out from the picture but we can measure also)
-            bot_y = bounding_box[3]+6*circle_height
+            #base of stoplight is about 7.33 light circles (after measuring) from top of red light (i vibed it out from the picture but we can measure also)
+            bot_y = bounding_box[3]+7.33*circle_height
             center_bot_x = int((bounding_box[0]+bounding_box[2])/2)
 
             pixel_msg = PixelLocation()
