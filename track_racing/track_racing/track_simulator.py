@@ -8,7 +8,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import Image
 from nav_msgs.msg import Odometry
 from cv_bridge import CvBridge
-from pyrender import OffscreenRenderer, Scene, PerspectiveCamera, PointLight, RenderFlags, IntrinsicsCamera
+from pyrender import OffscreenRenderer, Scene, PerspectiveCamera, PointLight, RenderFlags
 from scipy.spatial.transform import Rotation as R
 
 os.environ["PYOPENGL_PLATFORM"] = "egl"

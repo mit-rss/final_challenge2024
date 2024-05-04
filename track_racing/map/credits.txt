@@ -1,2 +1,5 @@
 Track adapted from here:
 https://3dwarehouse.sketchup.com/model/u255383dc-6d46-4bd8-912d-f73b11060cba/Olympic-running-Track-and-field?hl=en
+
+Environment map from here:
+https://polyhaven.com/a/wrestling_gym
