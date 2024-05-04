@@ -74,6 +74,7 @@ def get_bounding_box(df, label='stop sign', threshold=THRESHOLD):
     stop_sign = confidences[confidences['name'] == label].head(1)
     coords = stop_sign.xmin, stop_sign.ymin, stop_sign.xmax, stop_sign.ymax
     return [coord.values[0] for coord in coords]
+    #tuple of form (xmin, ymin, xmax, ymax)... i think
 
 if __name__=="__main__":
     detector = StopSignDetector()
