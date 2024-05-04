@@ -25,7 +25,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'track_simulator = track_racing.track_simulator:main'
+            'track_simulator = track_racing.track_simulator:main',
+            'lane_detector = track_racing.lane_detector:main',
         ],
     },
 )

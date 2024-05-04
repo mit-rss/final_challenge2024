@@ -52,11 +52,11 @@ class TrackSimulator(Node):
             msg.pose.pose.orientation.z,
             msg.pose.pose.orientation.w,
         ]
-        r = R.from_quat(q) * R.from_rotvec([0, 0, np.pi / 2]) * R.from_rotvec([80 * np.pi / 180, 0, 0])
+        r = R.from_quat(q) * R.from_rotvec([0, 0, np.pi / 2]) * R.from_rotvec([87.5 * np.pi / 180, 0, 0])
 
         pose = np.eye(4)
         pose[:3, :3] = r.as_matrix()
-        pose[:3, 3] = [-x, -y, 1]
+        pose[:3, 3] = [-x, -y, 0.3]
 
         self.scene.set_pose(self.camera, pose)
         self.scene.set_pose(self.light, pose)

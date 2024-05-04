@@ -9,6 +9,22 @@ from skimage.morphology import binary_dilation, binary_erosion, skeletonize, rec
 from math import pi, cos, sin, atan2
 
 
+# Pixels
+HOMOGRAPHY_IMAGE_PLANE = [
+    [364, 175],
+    [623, 170],
+    [585, 217],
+    [133, 222],
+]
+# Inches (+x forward, +y left)
+HOMOGRAPHY_GROUND_PLANE = [
+    [132.5, 3],
+    [122, -97],
+    [33.5, -25],
+    [35, 35],
+]
+METERS_PER_INCH = 0.0254
+
 class LaneDetector(Node):
     def __init__(self):
         super().__init__("lane_detector")
@@ -23,6 +39,12 @@ class LaneDetector(Node):
         # Publisher for debugging CV stuff
         self.debug_image_pub = self.create_publisher(Image, "/lane_debug_img", 10)
 
+        # Homography maps 2D lanes to 3D
+        self.homography, _ = cv.findHomography(
+            np.array(HOMOGRAPHY_GROUND_PLANE)[:, np.newaxis, :] * METERS_PER_INCH,
+            np.array(HOMOGRAPHY_IMAGE_PLANE)[:, np.newaxis, :],
+        )
+
         self.log("Lane detector initialized.")
     
     def log(self, s):
@@ -32,28 +54,35 @@ class LaneDetector(Node):
     def image_cb(self, msg: Image):
         img = self.bridge.imgmsg_to_cv2(msg, "bgr8")
 
-        rho, theta = LaneDetector.find_lanes(img)
+        viz, rho, theta = LaneDetector.find_lanes(img, sim=self.simulation)
         lines = LaneDetector.merge_lines(rho, theta)
 
         # Visualize
         for (rho, theta, _) in lines:
-            cv.line(img, *LaneDetector.line_polar_to_cartesian(rho, theta), (255, 0, 0), 2, cv.LINE_AA)
+            cv.line(viz, *LaneDetector.line_polar_to_cartesian(rho, theta), (255, 0, 0), 1, cv.LINE_AA)
+        
+        self.debug_image_pub.publish(self.bridge.cv2_to_imgmsg(viz, "bgr8"))
     
     @staticmethod
-    def find_lanes(img):
+    def find_lanes(img, *, sim=False):
         """
         Computer-vision algorithm to detect lanes on a track. Uses polar representation.
         """
+        # Down-sample image
+        img = cv.resize(img, (600, 400), interpolation=cv.INTER_NEAREST)
+
         # Isolate the red track and lanes within it. This initially gets rid of the white lanes,
         # but we get them back by dilating the mask horizontally.
         hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
-        mask = cv.inRange(hsv, (0, 75, 100), (10, 100, 180))
-        mask = binary_dilation(mask, rectangle(5, 50))
+        mask = cv.inRange(hsv, (0, 75, 100), (10, 200, 255) if sim else (10, 100, 180))
+        mask = binary_dilation(mask, rectangle(5, 150 if sim else 50))
         img *= mask.astype(np.uint8)[:, :, np.newaxis]
+
+        viz = np.copy(img)
 
         # Mask out the bright white lanes
         white = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-        img = np.greater(white, 200).astype(np.uint8) * 255
+        img = np.greater(white, 150 if sim else 200).astype(np.uint8) * 255
 
         # Everything near top of image is probably not relevant and tends to leak
         img[:100, :] = 0
@@ -62,6 +91,9 @@ class LaneDetector(Node):
         img = binary_erosion(img, square(4))
         # Dilation gives the lines their original thickness and fixes any discontinuities
         img = binary_dilation(img, square(3))
+
+        # Do a copy here so that visualization sees every CV stuff above here but not below
+        # viz = cv.cvtColor(np.copy(img).astype(np.uint8) * 255, cv.COLOR_GRAY2BGR)
 
         # Reduce lines to 1-pixel wide representation
         img = skeletonize(img)
@@ -73,8 +105,8 @@ class LaneDetector(Node):
         # Find the lines in polar representation
         lines = cv.HoughLines(img, 1, pi / 180, 50, None, 0, 0)
         if lines is None:
-            return ([], [])
-        return (lines[:, 0, 0], lines[:, 0, 1])
+            return (viz, [], [])
+        return (viz, lines[:, 0, 0], lines[:, 0, 1])
 
     @staticmethod
     def merge_lines(rho, theta, *, rho_threshold=50, theta_threshold=10):
@@ -84,8 +116,9 @@ class LaneDetector(Node):
         were merged into this one.
         """
         # Normalize the lines (positive rho)
-        rho[np.less(rho, 0)] *= -1
-        theta[np.less(rho, 0)] += pi
+        rho, theta = np.array(rho), np.array(theta)
+        theta[rho < 0] += pi
+        rho[rho < 0] *= -1
 
         out = []
 
@@ -110,7 +143,7 @@ class LaneDetector(Node):
         return out
     
     @staticmethod
-    def line_polar_to_cartesian(rho, theta, *, dist=1000):
+    def line_polar_to_cartesian(rho, theta, *, dist=10000):
         """
         Converts a line from polar to cartesian representation.
         """

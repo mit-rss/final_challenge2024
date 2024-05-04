@@ -1,0 +1,6 @@
+<!-- This file is for SIMULATION -->
+<launch>
+    <node pkg="track_racing" name="lane_detector" exec="lane_detector" output="screen">
+  	    <param name="simulation" value="true" />
+    </node>
+</launch>
