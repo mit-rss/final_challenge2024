@@ -31,18 +31,11 @@ class PurePursuit(Node):
         self.wheelbase_length = 0.3  # FILL IN #
 
         self.trajectory = LineTrajectory("/followed_trajectory")
-        
-        
 
         self.traj_sub = self.create_subscription(PoseArray,"/trajectory/current", self.trajectory_callback, 1)
-        
-        #this is so that the thing will always visualize
-        self.viz_sub = self.create_subscription(PoseArray,"loaded_trajectory/path", self.dummy_callback, 1)
-
         self.drive_pub = self.create_publisher(AckermannDriveStamped,
                                                self.drive_topic,
                                                1)
-        
         
         #subscribe to particle filter localization #turn back on for real car
         #real
@@ -62,19 +55,13 @@ class PurePursuit(Node):
         #offset from left line
         self.offset = 0.5
 
-        #flip counter
-        self.flip_counter = 1
-
 
 
     def pose_callback(self, odometry_msg):
-        car_x = odometry_msg.pose.pose.position.x
-        car_y = odometry_msg.pose.pose.position.y
-        car_z = odometry_msg.pose.pose.position.z
-        # #the camara of the car is at the origin
-        # car_x = 0.
-        # car_y = 0.
-        # car_z = 0.
+        #the camara of the car is at the origin
+        car_x = 0.
+        car_y = 0.
+        car_z = 0.
         car_xy_pos = np.array((car_x,car_y))
         
 
@@ -96,95 +83,31 @@ class PurePursuit(Node):
 
         #find the segment that is nearest to the car
         traj_points = np.array(self.trajectory.points)
-        
-        #if the car is going backwards flip the trajectory
-        if self.flip_counter == -1:
-            traj_points = traj_points[::-1]
-            
-        # ###########################################################
-        # #convert everything to base fram to make it easier to move the points
-        # ###########################################################
-        # car_x_world = odometry_msg.pose.pose.position.x
-        # car_y_world = odometry_msg.pose.pose.position.y
-        # # car_z = odometry_msg.pose.pose.position.z
-        # new_traj_points = np.empty(traj_points.shape)
-        # car_ort_x = odometry_msg.pose.pose.orientation.x
-        # car_ort_y = odometry_msg.pose.pose.orientation.y
-        # car_ort_z = odometry_msg.pose.pose.orientation.z
-        # car_ort_w = odometry_msg.pose.pose.orientation.w
-        # theta = euler_from_quaternion((car_ort_x, car_ort_y, car_ort_z, car_ort_w))[-1]
+        #FOR RUNNING IN SIM: Transform All Points to the base frame
+        car_x_world = odometry_msg.pose.pose.position.x
+        car_y_world = odometry_msg.pose.pose.position.y
+        # car_z = odometry_msg.pose.pose.position.z
+        new_traj_points = np.empty(traj_points.shape)
+        car_ort_x = odometry_msg.pose.pose.orientation.x
+        car_ort_y = odometry_msg.pose.pose.orientation.y
+        car_ort_z = odometry_msg.pose.pose.orientation.z
+        car_ort_w = odometry_msg.pose.pose.orientation.w
+        theta = euler_from_quaternion((car_ort_x, car_ort_y, car_ort_z, car_ort_w))[-1]
 
-        # traj_points[:,0] = traj_points[:,0]-car_x_world
-        # traj_points[:,1] = traj_points[:,1]-car_y_world
+        traj_points[:,0] = traj_points[:,0]-car_x_world
+        traj_points[:,1] = traj_points[:,1]-car_y_world
 
-        # new_traj_points[:,0] = np.cos(-theta)*traj_points[:,0]-np.sin(-theta)*traj_points[:,1]
-        # new_traj_points[:,1] = np.sin(-theta)*traj_points[:,0]+np.cos(-theta)*traj_points[:,1]
-        # traj_points=new_traj_points
-        # traj_points = traj_points-np.array([0,self.offset])
-        # ######################################################################################################
-        # #######################################################################################################
-
-        # ###########################################################
-        # #convert everything back to world
-        # ###########################################################
-        # new_traj_points = np.empty(traj_points.shape)
-        # new_traj_points[:,0] = np.cos(theta)*traj_points[:,0]-np.sin(theta)*traj_points[:,1]
-        # new_traj_points[:,1] = np.sin(theta)*traj_points[:,0]+np.cos(theta)*traj_points[:,1]
-        # traj_points=new_traj_points
-        # traj_points[:,0] = traj_points[:,0]+car_x_world
-        # traj_points[:,1] = traj_points[:,1]+car_y_world
-
-        # ######################################################################################################
-        # #######################################################################################################
-        
-        start_pts = traj_points[:-1,:]
-        end_pts = traj_points[1:,:]
-        segs = np.empty((start_pts.shape[0],4))
-        segs[:,:2] = start_pts
-        segs[:,2:] = end_pts
-
-        deltas = end_pts-start_pts
-
-        traj_norms = np.zeros((segs.shape[0],2))
-        traj_norms[:,0] = deltas[:,1]
-        traj_norms[:,1] = -deltas[:,0]
-
-        traj_norms_sqd = traj_norms**2
-        sum_sqd_traj_norms = np.abs(np.sum(traj_norms_sqd,axis=1))
-        traj_norms = traj_norms/np.sqrt(sum_sqd_traj_norms[:, np.newaxis])
-
-        segs[:,:2]  += self.offset*traj_norms
-        segs[:,2:]  += self.offset*traj_norms
-
-        #solve for the paramter to make the lines int
-        ac = segs[1:,:2]-segs[:-1,:2]
-        ac = ac.flatten()
-        ab = segs[:-1,2:]-segs[:-1,:2]
-        cd = segs[1:,2:]-segs[1:,:2]
-
-        A = np.zeros((2*(segs.shape[0]-1),2*(segs.shape[0]-1)))
-        for i in range(0,A.shape[0],2):
-            A[i:i+2,i] = ab[int(i/2),:]
-            A[i:i+2,i+1] = cd[int(i/2),:]
-
-        t = np.linalg.solve(A,ac.T)
-
-        new_points = np.zeros((segs.shape[0]+1,2))
-        start_points=segs[:,:2]
-        end_points = segs[:,2:]
-
-        new_points[0,:]=start_points[0,:]
-        new_points[-1,:]=end_points[-1,:]
-
-        t = t.reshape(-1, 1)
-        new_points[1:-1,:]=start_points[:-1]+ab[:,:]*t[::2]
-        traj_points = new_points
-
-        
-        #self.get_logger().info(f'trajpts {traj_points}')
+        new_traj_points[:,0] = np.cos(-theta)*traj_points[:,0]-np.sin(-theta)*traj_points[:,1]
+        new_traj_points[:,1] = np.sin(-theta)*traj_points[:,0]+np.cos(-theta)*traj_points[:,1]
+        traj_points=new_traj_points
+        ###########################################################
+        traj_points = traj_points-np.array([0,self.offset])
         N=traj_points.shape[0]
         nrst_distances = self.find_dist(traj_points[0:N-1,:],traj_points[1:N,:],car_xy_pos)
+        #self.get_logger().info(f'nrst_dist {nrst_distances}')
         min_index = np.argmin(nrst_distances)
+        #self.get_logger().info(f'min index{min_index}')
+        #self.get_logger().info(f'index {min_index}')
         nearest_segment = traj_points[min_index:(min_index+2),:]
         
 
@@ -192,25 +115,6 @@ class PurePursuit(Node):
         #self.get_logger().info(f'nearest segment{nearest_segment}')
         p1 = nearest_segment[0,:]
         p2 = nearest_segment[1,:]
-
-        #check to see if you are running the course backwards
-        car_ort_x = odometry_msg.pose.pose.orientation.x
-        car_ort_y = odometry_msg.pose.pose.orientation.y
-        car_ort_z = odometry_msg.pose.pose.orientation.z
-        car_ort_w = odometry_msg.pose.pose.orientation.w
-        theta = euler_from_quaternion((car_ort_x, car_ort_y, car_ort_z, car_ort_w))[-1]
-        car_x_direction = np.array([math.cos(theta),math.sin(theta)])
-        car_y_direction = np.array([-math.sin(theta),math.cos(theta)])
-
-
-        direction = p2-p1
-        direction_parameter = np.dot(direction,np.array(car_x_direction)) # if positive do nothing
-        if direction_parameter < 0:
-            #if the car is going backwards we need to tell it to flip the path 
-            #and repeat the process
-            self.flip_counter*=-1
-            return
-            
 
         #find the centerline distance from the current segment for data
         centerline_distance = self.find_centerline_dist(p1,p2,car_xy_pos)
@@ -220,22 +124,6 @@ class PurePursuit(Node):
         # with open("centerline_data.txt", "a") as file:
         #     # Write each item from the data list to the file
         #     file.write(f"{centerline_distance},{current_time}\n")
-
-        # #we need to account for the fact that right turns are on the inside
-        # #and left turns are on the outside
-        # if (min_index+3) <= traj_points.shape[0]:
-        #     next_segemnt = traj_points[(min_index+1):(min_index+3),:]
-        #     start_point = next_segemnt[0,:]
-        #     end_point = next_segemnt[1,:]
-        #     #self.get_logger().info(f'sp {start_point}')
-        #     dx = end_point[0]-start_point[0]
-        #     dy = end_point[1]-start_point[1]
-        #     turn_vector = np.array([dx,dy])
-        #     car_direction_norm = np.array([car_y_direction])
-        #     turn_factor = np.dot(car_direction_norm,turn_vector)
-        #     turn_factor = turn_factor/abs(turn_factor)
-        # else:
-        #     turn_factor = 0
     
         #if the car is so close to the end look to the next
         dist_from_end = np.linalg.norm(car_xy_pos-p2)
@@ -288,10 +176,41 @@ class PurePursuit(Node):
             #t1 should be greater, but it might be out of range! if it is out of range then use t2
             target_point = int1
         
+         
+        
         
         
         
 
+        # #visualize the target_point
+        # from threading import Lock
+        # self.lock = Lock()
+        # with self.lock:
+        #     msg = PoseArray()
+        #     msg.header.frame_id = "map"
+        #     msg.header.stamp = self.get_clock().now().to_msg()
+        #     msg.poses.append(PurePursuit.pose_to_msg(target_point[0], target_point[1], 0.0))
+        # self.viz_pub.publish(msg)
+
+        #  #visualize the p1
+        # from threading import Lock
+        # self.lock = Lock()
+        # with self.lock:
+        #     msg = PoseArray()
+        #     msg.header.frame_id = "map"
+        #     msg.header.stamp = self.get_clock().now().to_msg()
+        #     msg.poses.append(PurePursuit.pose_to_msg(p1[0], p1[1], 0.0))
+        # self.viz_pubp1.publish(msg)
+
+        #  #visualize the target_point
+        # from threading import Lock
+        # self.lock = Lock()
+        # with self.lock:
+        #     msg = PoseArray()
+        #     msg.header.frame_id = "map"
+        #     msg.header.stamp = self.get_clock().now().to_msg()
+        #     msg.poses.append(PurePursuit.pose_to_msg(p2[0], p2[1], 0.0))
+        # self.viz_pubp2.publish(msg)
         
 
 
@@ -300,8 +219,9 @@ class PurePursuit(Node):
         #now that we  have the target point we can do the pure pursuite algorithm
         #determine the heading of the car in the world frame
 
-        #theta = 0.
-        
+        theta = 0.
+        car_x_direction = np.array([math.cos(theta),math.sin(theta)])
+        car_y_direction = np.array([-math.sin(theta),math.cos(theta)])
         
         #calculate the position of the point relative to the car
         target_point_point_rel_to_car = car_xy_pos-target_point
@@ -324,81 +244,14 @@ class PurePursuit(Node):
 
 
 
-
-        # ###########################################################
-        # #FOR RUNNING IN SIM: Transform all viz points back to world frame
-        # ###########################################################
-        
-        # new_p1 = np.empty(2)
-        # new_p2 = np.empty(2)
-        # new_target = np.empty(2)
-
-        # new_p1[0] = np.cos(theta)*p1[0]-np.sin(theta)*p1[1]
-        # new_p1[1] = np.sin(theta)*p1[0]+np.cos(theta)*p1[1]
-        # p1=new_p1
-
-        # new_p2[0] = np.cos(theta)*p2[0]-np.sin(theta)*p2[1]
-        # new_p2[1] = np.sin(theta)*p2[0]+np.cos(theta)*p2[1]
-        # p2=new_p2
-
-        # new_target[0] = np.cos(theta)*target_point[0]-np.sin(theta)*target_point[1]
-        # new_target[1] = np.sin(theta)*target_point[0]+np.cos(theta)*target_point[1]
-        # target_point=new_target
-
-        # p1[0] = p1[0]+car_x_world
-        # p1[1] = p1[1]+car_y_world
-
-        # p2[0] = p2[0]+car_x_world
-        # p2[1] = p2[1]+car_y_world
-
-        # target_point[0] = target_point[0]+car_x_world
-        # target_point[1] = target_point[1]+car_y_world
-        
-        # ######################################################################################################
-        # #######################################################################################################
-
-        #visualize the target_point
-        from threading import Lock
-        self.lock = Lock()
-        with self.lock:
-            msg = PoseArray()
-            msg.header.frame_id = "map"
-            msg.header.stamp = self.get_clock().now().to_msg()
-            msg.poses.append(PurePursuit.pose_to_msg(target_point[0], target_point[1], 0.0))
-        self.viz_pub.publish(msg)
-
-         #visualize the p1
-        from threading import Lock
-        self.lock = Lock()
-        with self.lock:
-            msg = PoseArray()
-            msg.header.frame_id = "map"
-            msg.header.stamp = self.get_clock().now().to_msg()
-            msg.poses.append(PurePursuit.pose_to_msg(p1[0], p1[1], 0.0))
-        self.viz_pubp1.publish(msg)
-
-         #visualize the target_point
-        from threading import Lock
-        self.lock = Lock()
-        with self.lock:
-            msg = PoseArray()
-            msg.header.frame_id = "map"
-            msg.header.stamp = self.get_clock().now().to_msg()
-            msg.poses.append(PurePursuit.pose_to_msg(p2[0], p2[1], 0.0))
-        self.viz_pubp2.publish(msg)
-
-
-
     def trajectory_callback(self, msg):
         self.get_logger().info(f"Receiving new trajectory {len(msg.poses)} points")
 
         self.trajectory.clear()
         self.trajectory.fromPoseArray(msg)
         self.trajectory.publish_viz(duration=0.0)
+
         self.initialized_traj = True
-    
-    def dummy_callback(self,msg):
-        return
 
     def find_dist(self, linepoint1, linepoint2, point):
         linepoint1 = np.array(linepoint1)
