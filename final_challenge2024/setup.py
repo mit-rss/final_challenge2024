@@ -1,4 +1,6 @@
 from setuptools import setup
+import os
+import glob
 
 package_name = 'final_challenge2024'
 
@@ -10,6 +12,11 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        ('share/final_challenge2024/launch', glob.glob(os.path.join('launch', '*launch.py'))),
+        ('share/final_challenge2024/launch', glob.glob(os.path.join('launch', '*launch.xml'))),
+
+        ('lib/'+package_name+"/city_driving", glob.glob(os.path.join('final_challenge2024/computer_vision', '*.py'))),
+        
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -20,6 +27,10 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'city_stopping_controller = final_challenge2024.city_stopping_controller:main',
+            'homography_transformer = final_challenge2024.homography_transformer:main',
+            'stop_light_detector = final_challenge2024.stop_light_detector:main',
+            'stop_detector = final_challenge2024.stop_detector:main',
         ],
     },
 )
