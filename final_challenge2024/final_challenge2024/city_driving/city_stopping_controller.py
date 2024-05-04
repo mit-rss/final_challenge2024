@@ -14,7 +14,7 @@ from stop_msgs.msg import PhysicalLocation
 
 class CityStoppingController(Node):
     def __init__(self):
-        super().__init__("wall_follower") #<--- wut is this for again... T-T
+        super().__init__("city_stopping_controller")
         self.create_timer(1.0, self.timer_callback)
         # Declare parameters to make them available for use
         # self.declare_parameter("scan_topic", "/scan")
@@ -22,7 +22,6 @@ class CityStoppingController(Node):
         self.declare_parameter("stop_topic","/drive")
         self.declare_parameter("base_frame", "/base_link")
 
-        #this is so fucking jank but i'm also. tired as fuck
         #when stopping for stop sign, decrement this value
         #when this countdown is done, wait for cooldown to decrement
         #then reset both

@@ -22,7 +22,7 @@ class StoplightDetector(Node):
     Publishes to: /relative_cone_px (ConeLocationPixel) : the coordinates of the cone in the image frame (units are pixels).
     """
     def __init__(self):
-        super().__init__("cone_detector")
+        super().__init__("stop_light_detector")
         # toggle line follower vs cone parker
         self.LineFollower = False
 
@@ -57,7 +57,7 @@ class StoplightDetector(Node):
         if (bounding_box[0] + bounding_box[1] + bounding_box[2] + bounding_box[3]) !=0:
             circle_height = bounding_box[3]-bounding_box[1]
 
-            #base of stoplight is about 7.33 light circles (after measuring) from top of red light (i vibed it out from the picture but we can measure also)
+            #base of stoplight is about 7.33 light circles (after measuring) from top of red light
             bot_y = bounding_box[3]+7.33*circle_height
             center_bot_x = int((bounding_box[0]+bounding_box[2])/2)
 

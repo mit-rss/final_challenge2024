@@ -48,9 +48,6 @@ class SignDetector(Node):
             debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
             self.debug_pub.publish(debug_msg)
 
-        # else:
-        #     pass
-            # self.publisher.publish() #TODO finish this to publish to correct topic with relative pixel location u,v
 
 def main(args=None):
     rclpy.init(args=args)
