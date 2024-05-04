@@ -73,9 +73,14 @@ class CityStoppingController(Node):
         
         self.last_drive_command = msg
 
-        #decrement stopsign cooldown if needed
-        if self.ignore_stopsigns:
+        #decrement stopsign cooldown if currently ignoring stopsigns and cooldown time remaining
+        if self.ignore_stopsigns and self.stopsign_cooldown:
             self.stopsign_cooldown-=1
+        else: #stopsign cooldown complete
+            #reset
+            self.ignore_stopsigns = False
+            self.stopsign_brake_time = 10
+            self.stopsign_cooldown = 10
 
     def on_stopsign(self,msg):
         """
@@ -112,13 +117,8 @@ class CityStoppingController(Node):
             #TODO: find way to make it come to a full stop and then continue on without reacting to same stop sign
             self.stop_pub.publish(self.stop_msg)
             self.stopsign_brake_time -= 1 #stop for about one second (callback runs at 10Hz)
-        elif not self.stopsign_brake_time and self.stopsign_cooldown: #ignore stopsigns for about 1 second
-            self.ignore_stopsigns=True
-            # self.stopsign_cooldown-=1
-        else: #reset, ready to stopsign again
-            self.ignore_stopsigns = False
-            self.stopsign_brake_time=10
-            self.stopsign_cooldown=10
+        elif obj_dist <= (total_stop_d + threshold) and not self.stopsign_brake_time and self.stopsign_cooldown: #within range and done braking, start cooldown
+            self.ignore_stopsigns=True #start cooldown
             
 
     def on_stoplight(self,msg):
