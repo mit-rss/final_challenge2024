@@ -18,7 +18,8 @@ class TrackSimulator(Node):
         self.timer = self.create_timer(1 / 15, self.timer_cb)
         self.bridge = CvBridge()
 
-        self.scene = Scene(load_mesh("track.glb"))
+        with open("/home/racecar/racecar_ws/src/final_challenge2024/track_racing/track_racing/track.glb", "rb") as mesh:
+            self.scene = Scene(load_mesh(mesh, "glb"))
     
     def timer_cb(self):
         self.scene.camera.z_near = 1e-3

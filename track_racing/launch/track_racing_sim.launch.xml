@@ -1,0 +1,5 @@
+<launch>
+    <node pkg="track_racing" name="track_simulator" exec="track_simulator" output="screen">
+  	    <param name="simulation" value="true" />
+    </node>
+</launch>
