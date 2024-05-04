@@ -13,8 +13,11 @@ class LaneDetector(Node):
     def __init__(self):
         super().__init__("lane_detector")
 
+        self.simulation = self.declare_parameter("simulation", True).get_parameter_value().bool_value
+        self.camera_topic = "/track_camera" if self.simulation else "/zed/zed_node/rgb/image_rect_color"
+        
         # Subscription to the ZED2 camera
-        self.image_sub = self.create_subscription(Image, "/zed/zed_node/rgb/image_rect_color", self.image_cb, 5)
+        self.image_sub = self.create_subscription(Image, self.camera_topic, self.image_cb, 5)
         self.bridge = CvBridge()
 
         # Publisher for debugging CV stuff
