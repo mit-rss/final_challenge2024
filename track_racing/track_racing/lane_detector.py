@@ -6,7 +6,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from skimage.morphology import binary_dilation, binary_erosion, skeletonize, rectangle, square
-from math import pi, cos, sin, atan2
+from math import pi, cos, sin, atan2, tan
 
 
 # Pixels
@@ -59,6 +59,8 @@ class LaneDetector(Node):
 
         # Visualize
         for (rho, theta, _) in lines:
+            if tan(theta) == 0 or -1/tan(theta) > -0.6:
+                continue
             cv.line(viz, *LaneDetector.line_polar_to_cartesian(rho, theta), (255, 0, 0), 1, cv.LINE_AA)
         
         self.debug_image_pub.publish(self.bridge.cv2_to_imgmsg(viz, "bgr8"))
@@ -71,14 +73,14 @@ class LaneDetector(Node):
         # Down-sample image
         img = cv.resize(img, (600, 400), interpolation=cv.INTER_NEAREST)
 
+        viz = np.copy(img)
+
         # Isolate the red track and lanes within it. This initially gets rid of the white lanes,
         # but we get them back by dilating the mask horizontally.
         hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
         mask = cv.inRange(hsv, (0, 75, 100), (10, 200, 255) if sim else (10, 100, 180))
         mask = binary_dilation(mask, rectangle(5, 150 if sim else 50))
         img *= mask.astype(np.uint8)[:, :, np.newaxis]
-
-        viz = np.copy(img)
 
         # Mask out the bright white lanes
         white = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
