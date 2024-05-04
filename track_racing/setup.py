@@ -1,3 +1,6 @@
+import glob
+import os
+
 from setuptools import setup
 
 package_name = 'track_racing'
@@ -10,6 +13,8 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        ('share/track_racing/launch', glob.glob(os.path.join('launch', '*launch.*'))),
+        ('share/track_racing/map', glob.glob(os.path.join('map', '*'))),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
