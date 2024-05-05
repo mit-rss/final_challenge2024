@@ -18,7 +18,7 @@ class LineTrajectory:
     """ A class to wrap and work with piecewise linear trajectories. """
 
     def __init__(self, node, viz_namespace=None):
-        self.points: List[Tuple[float, float,float]] = []
+        self.points = []
         self.distances = []
         self.has_acceleration = False
         self.visualize = False
@@ -67,7 +67,7 @@ class LineTrajectory:
         else:
             return (1.0 - t) * self.distances[i] + t * self.distances[i + 1]
 
-    def addPoint(self, point: Tuple[float, float,float]) -> None:
+    def addPoint(self, point) -> None:
         #  to trajectory:", point)
         self.points.append(point)
         self.update_distances()
@@ -86,7 +86,12 @@ class LineTrajectory:
         data = {}
         data["points"] = []
         for p in self.points:
-            data["points"].append({"x": p[0], "y": p[1]})
+            if len(p)==2:
+                data["points"].append({"x": p[0], "y": p[1]})
+            elif len(p)==3:
+                data["points"].append({"x": p[0], "y": p[1],"z":p[2]})
+            else:
+                raise AssertionError("lenght of points not recognized")
         with open(path, 'w') as outfile:
             json.dump(data, outfile)
 
@@ -114,9 +119,12 @@ class LineTrajectory:
         self.mark_dirty()
 
     # build a trajectory class instance from a trajectory message
-    def fromPoseArray(self, trajMsg):
+    def fromPoseArray(self, trajMsg,include_Z = False):
         for p in trajMsg.poses:
-            self.points.append((p.position.x, p.position.y,p.position.z))
+            if include_Z:
+                self.points.append((p.position.x, p.position.y,p.position.z))
+            else:
+                self.points.append((p.position.x, p.position.y))
         self.update_distances()
         self.mark_dirty()
         print("Loaded new trajectory with:", len(self.points), "points")
@@ -129,7 +137,8 @@ class LineTrajectory:
             pose = Pose()
             pose.position.x = p[0]
             pose.position.y = p[1]
-            pose.position.z = p[2]
+            if len(p)==3:
+                pose.position.z = p[2]
             traj.poses.append(pose)
         return traj
 
