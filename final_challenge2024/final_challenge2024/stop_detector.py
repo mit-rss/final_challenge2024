@@ -36,6 +36,7 @@ class SignDetector(Node):
         self.get_logger().info(f"Bounding box? {bounding_box}")
 
         self.get_logger().info(f"Bounding box? {bounding_box}")
+        print("bounding_box",bounding_box)
         cv2.rectangle(image, (bounding_box[0], bounding_box[1]), (bounding_box[2], bounding_box[3]), (0, 255, 0), 2)
         if (bounding_box[0] + bounding_box[1] + bounding_box[2] + bounding_box[3]) !=0:
             sign_height = bounding_box[3]-bounding_box[1]
