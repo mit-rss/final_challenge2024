@@ -41,7 +41,7 @@ class PurePursuit(Node):
         #real
         #self.pose_sub = self.create_subscription(Odometry,"/pf/pose/odom",self.pose_callback, 1)
         #sim
-        self.pose_sub = self.create_subscription(Odometry,"/odom",self.pose_callback, 1)   
+        #self.pose_sub = self.create_subscription(Odometry,"/odom",self.pose_callback, 1)   
 
         #viz target point
         self.viz_pub = self.create_publisher(PoseArray, "/target_point", 1) 
@@ -53,7 +53,7 @@ class PurePursuit(Node):
         self.viz_pubp2 = self.create_publisher(PoseArray, "/p2", 1)
 
         #offset from left line
-        self.offset = 0.5
+        self.offset = 0.3175
 
 
 
@@ -83,23 +83,23 @@ class PurePursuit(Node):
 
         #find the segment that is nearest to the car
         traj_points = np.array(self.trajectory.points)
-        #FOR RUNNING IN SIM: Transform All Points to the base frame
-        car_x_world = odometry_msg.pose.pose.position.x
-        car_y_world = odometry_msg.pose.pose.position.y
-        # car_z = odometry_msg.pose.pose.position.z
-        new_traj_points = np.empty(traj_points.shape)
-        car_ort_x = odometry_msg.pose.pose.orientation.x
-        car_ort_y = odometry_msg.pose.pose.orientation.y
-        car_ort_z = odometry_msg.pose.pose.orientation.z
-        car_ort_w = odometry_msg.pose.pose.orientation.w
-        theta = euler_from_quaternion((car_ort_x, car_ort_y, car_ort_z, car_ort_w))[-1]
+        # #FOR RUNNING IN SIM: Transform All Points to the base frame
+        # car_x_world = odometry_msg.pose.pose.position.x
+        # car_y_world = odometry_msg.pose.pose.position.y
+        # # car_z = odometry_msg.pose.pose.position.z
+        # new_traj_points = np.empty(traj_points.shape)
+        # car_ort_x = odometry_msg.pose.pose.orientation.x
+        # car_ort_y = odometry_msg.pose.pose.orientation.y
+        # car_ort_z = odometry_msg.pose.pose.orientation.z
+        # car_ort_w = odometry_msg.pose.pose.orientation.w
+        # theta = euler_from_quaternion((car_ort_x, car_ort_y, car_ort_z, car_ort_w))[-1]
 
-        traj_points[:,0] = traj_points[:,0]-car_x_world
-        traj_points[:,1] = traj_points[:,1]-car_y_world
+        # traj_points[:,0] = traj_points[:,0]-car_x_world
+        # traj_points[:,1] = traj_points[:,1]-car_y_world
 
-        new_traj_points[:,0] = np.cos(-theta)*traj_points[:,0]-np.sin(-theta)*traj_points[:,1]
-        new_traj_points[:,1] = np.sin(-theta)*traj_points[:,0]+np.cos(-theta)*traj_points[:,1]
-        traj_points=new_traj_points
+        # new_traj_points[:,0] = np.cos(-theta)*traj_points[:,0]-np.sin(-theta)*traj_points[:,1]
+        # new_traj_points[:,1] = np.sin(-theta)*traj_points[:,0]+np.cos(-theta)*traj_points[:,1]
+        # traj_points=new_traj_points
         ###########################################################
         traj_points = traj_points-np.array([0,self.offset])
         N=traj_points.shape[0]
