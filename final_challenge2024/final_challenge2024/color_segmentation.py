@@ -45,7 +45,7 @@ def cd_color_segmentation(img, template):
 
 	#basically kept this the same, will adjust
 	red_low = (0, 120, 150)
-	red_high = (20, 255, 255)	
+	red_high = (10, 255, 255)	
 
 	mask = cv2.inRange(hsv_img, red_low, red_high)
 	# cv2.imwrite("mask.jpg", mask) 
