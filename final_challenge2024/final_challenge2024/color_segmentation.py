@@ -34,7 +34,7 @@ def cd_color_segmentation(img, template):
 	"""
 	########## YOUR CODE STARTS HERE ##########
 
-	bounding_box = ((0,0),(0,0))
+	bounding_box = (0,0,0,0)
 	hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 	# cv2.imwrite("hsv.jpg", hsv_img) 
 

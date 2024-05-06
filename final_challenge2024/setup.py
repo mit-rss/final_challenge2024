@@ -14,8 +14,7 @@ setup(
         ('share/' + package_name, ['package.xml']),
         ('share/final_challenge2024/launch', glob.glob(os.path.join('launch', '*launch.py'))),
         ('share/final_challenge2024/launch', glob.glob(os.path.join('launch', '*launch.xml'))),
-
-        ('lib/'+package_name+"/city_driving", glob.glob(os.path.join('final_challenge2024/computer_vision', '*.py'))),
+        ('lib/'+package_name+"", glob.glob(os.path.join('final_challenge2024/', '*.py'))),
         
     ],
     install_requires=['setuptools'],

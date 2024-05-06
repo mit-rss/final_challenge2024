@@ -15,7 +15,7 @@ from stop_msgs.msg import PhysicalLocation
 class CityStoppingController(Node):
     def __init__(self):
         super().__init__("city_stopping_controller")
-        self.create_timer(1.0, self.timer_callback)
+        # self.create_timer(1.0, self.timer_callback)
         # Declare parameters to make them available for use
         # self.declare_parameter("scan_topic", "/scan")
         self.declare_parameter("drive_topic", "/drive") 

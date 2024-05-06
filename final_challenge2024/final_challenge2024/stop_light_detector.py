@@ -12,7 +12,7 @@ from geometry_msgs.msg import Point #geometry_msgs not in CMake file
 from stop_msgs.msg import PixelLocation
 
 # import your color segmentation algorithm; call this function in ros_image_callback!
-from stop_light_detector import cd_color_segmentation
+from color_segmentation import cd_color_segmentation
 
 
 class StoplightDetector(Node):
