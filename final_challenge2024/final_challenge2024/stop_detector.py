@@ -32,7 +32,10 @@ class SignDetector(Node):
         pixel_msg = PixelLocation()
         #send message only when stop sign is detected
 
+        self.get_logger().info(f"Stop Sign? {isStopSign}")
+
         if isStopSign:
+            self.get_logger().info(f"Bounding box? {bounding_box}")
             cv2.rectangle(image, (bounding_box[0], bounding_box[1]), (bounding_box[2], bounding_box[3]), (0, 255, 0), 2)
             if (bounding_box[0] + bounding_box[1] + bounding_box[2] + bounding_box[3]) !=0:
                 sign_height = bounding_box[3]-bounding_box[1]
@@ -46,6 +49,7 @@ class SignDetector(Node):
                 self.publisher.publish(pixel_msg)
 
             debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
+            self.get_logger().info("Publishing debug")
             self.debug_pub.publish(debug_msg)
 
 

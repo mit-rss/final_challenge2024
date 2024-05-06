@@ -68,6 +68,7 @@ class StoplightDetector(Node):
             self.stoplight_pub.publish(pixel_msg)
 
         debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
+        self.get_logger().info("Publishing debug")
         self.debug_pub.publish(debug_msg)
 
 def main(args=None):
