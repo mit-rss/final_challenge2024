@@ -33,6 +33,7 @@ class SignDetector(Node):
         #send message only when stop sign is detected
 
         self.get_logger().info(f"Stop Sign? {isStopSign}")
+        self.get_logger().info(f"Bounding box? {bounding_box}")
 
         if isStopSign:
             self.get_logger().info(f"Bounding box? {bounding_box}")
@@ -48,9 +49,9 @@ class SignDetector(Node):
 
                 self.publisher.publish(pixel_msg)
 
-            debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
-            self.get_logger().info("Publishing debug")
-            self.debug_pub.publish(debug_msg)
+        debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
+        self.get_logger().info("Publishing debug")
+        self.debug_pub.publish(debug_msg)
 
 
 def main(args=None):
