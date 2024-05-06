@@ -35,22 +35,24 @@ class SignDetector(Node):
         self.get_logger().info(f"Stop Sign? {isStopSign}")
         self.get_logger().info(f"Bounding box? {bounding_box}")
 
-        self.get_logger().info(f"Bounding box? {bounding_box}")
-        print("bounding_box",bounding_box)
-        cv2.rectangle(image, (bounding_box[0], bounding_box[1]), (bounding_box[2], bounding_box[3]), (0, 255, 0), 2)
-        if (bounding_box[0] + bounding_box[1] + bounding_box[2] + bounding_box[3]) !=0:
-            sign_height = bounding_box[3]-bounding_box[1]
-            bot_y = bounding_box[3]+sign_height #estimate sign to be two stop sign faces high, location at base of sign
-            center_bot_x = int((bounding_box[0]+bounding_box[2])/2)
 
-            pixel_msg = PixelLocation()
-            pixel_msg.u = float(center_bot_x)
-            pixel_msg.v = float(bot_y)
+        #draw rectangle?
+        # cv2.rectangle(image, (bounding_box[0], bounding_box[1]), (bounding_box[2], bounding_box[3]), (0, 255, 0), 2)
+        # if (bounding_box[0] + bounding_box[1] + bounding_box[2] + bounding_box[3]) !=0:
+        #     sign_height = bounding_box[3]-bounding_box[1]
+        #     bot_y = bounding_box[3]+sign_height #estimate sign to be two stop sign faces high, location at base of sign
+        #     center_bot_x = int((bounding_box[0]+bounding_box[2])/2)
 
-            self.publisher.publish(pixel_msg)
+        #     pixel_msg = PixelLocation()
+        #     pixel_msg.u = float(center_bot_x)
+        #     pixel_msg.v = float(bot_y)
 
-        debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
-        self.get_logger().info("Publishing debug")
+        #     self.publisher.publish(pixel_msg)
+        box_image = self.detector.draw_box(image, bounding_box)
+
+        # debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
+        debug_msg = self.bridge.cv2_to_imgmsg(box_image, "bgr8")
+        self.get_logger().info("Publishing stop sign debug")
         self.debug_pub.publish(debug_msg)
 
 
