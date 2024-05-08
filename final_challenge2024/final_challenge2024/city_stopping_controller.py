@@ -61,9 +61,9 @@ class CityStoppingController(Node):
         
         #initiallize default last car pose to (0,0,0)
         self.last_car_pose = Odometry()
-        self.last_car_pose.pose.pose.position.point.x = 0.0
-        self.last_car_pose.pose.pose.position.point.y = 0.0
-        self.last_car_pose.pose.pose.position.point.z = 0.0
+        self.last_car_pose.pose.pose.position.x = 0.0
+        self.last_car_pose.pose.pose.position.y = 0.0
+        self.last_car_pose.pose.pose.position.z = 0.0
 
 
         #max last_drive command at start to make safe initially
