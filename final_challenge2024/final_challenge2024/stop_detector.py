@@ -40,7 +40,7 @@ class SignDetector(Node):
         # cv2.rectangle(image, (bounding_box[0], bounding_box[1]), (bounding_box[2], bounding_box[3]), (0, 255, 0), 2)
         if (bounding_box[0] + bounding_box[1] + bounding_box[2] + bounding_box[3]) !=0:
             sign_height = bounding_box[3]-bounding_box[1]
-            bot_y = bounding_box[3]+sign_height #estimate sign to be two stop sign faces high, location at base of sign
+            bot_y = bounding_box[3]+1.5*sign_height #estimate sign to be 20 in tall, sign face is 8 in, calculate location at base of sign
             center_bot_x = int((bounding_box[0]+bounding_box[2])/2)
 
             pixel_msg = PixelLocation()

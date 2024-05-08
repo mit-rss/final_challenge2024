@@ -16,12 +16,23 @@ from stop_msgs.msg import PhysicalLocation
 class CityStoppingController(Node):
     def __init__(self):
         super().__init__("city_stopping_controller")
-        # self.create_timer(1.0, self.timer_callback)
+
         # Declare parameters to make them available for use
-        # self.declare_parameter("scan_topic", "/scan")
         self.declare_parameter("drive_topic", "/drive") 
         self.declare_parameter("stop_topic","/drive")
         self.declare_parameter("base_frame", "/base_link")
+
+        #approx. locations of stoplights (classroom, hallway, vending machines) on map
+        # self.stoplight_coords = [(10.4,16.6),(29.2,-34.1), (54.7,-22.9)]
+        self.light_1_pose = (10.4,16.6)
+        self.light_2_pose = (29.2,-34.1)
+        self.light_3_pose = (54.7,-22.9)
+
+        #set default euclid dists to all stoplights
+        self.stoplight_1_dist = float('inf')
+        self.stoplight_2_dist = float('inf')
+        self.stoplight_3_dist = float('inf')
+
 
         #when stopping for stop sign, decrement this value
         #when this countdown is done, wait for cooldown to decrement
@@ -30,7 +41,6 @@ class CityStoppingController(Node):
         self.stopsign_brake_time = 10 #can adjust i guess, plan to just decrement every time a drive command recieved
         self.stopsign_cooldown = 10
         
-
         # Fetch constants from the ROS parameter server
         # self.SCAN_TOPIC = self.get_parameter('scan_topic').get_parameter_value().string_value
         self.DRIVE_TOPIC = self.get_parameter('drive_topic').get_parameter_value().string_value
@@ -42,15 +52,18 @@ class CityStoppingController(Node):
         # Publishers and subscribers
         self.drive_subscriber = self.create_subscription(AckermannDriveStamped, self.DRIVE_TOPIC, self.log_drive_command, 10)
         self.stopsign_subscriber = self.create_subscription(PhysicalLocation, '/relative_stopsign', self.on_stopsign, 10)
-        # self.stoplight_subscriber = self.create_subscription(PhysicalLocation, '/relative_stoplight', self.on_stoplight, 10)
+        self.detects_stoplight = self.create_subscription(Bool, '/detects_stoplight', self.on_stoplight, 10)
         self.ground_truth_subscriber = self.create_subscription(Odometry, '/pf/pose/odom', self.log_car_pose, 1)
 
 
         self.stop_pub = self.create_publisher(AckermannDriveStamped, self.STOP_TOPIC, 1)
         self.error_pub = self.create_publisher(Float32,"city_stop_error",1)
         
-        #initiallize default last car pose to roughly the start point TODO (similar to last_drive_command)
+        #initiallize default last car pose to (0,0,0)
         self.last_car_pose = Odometry()
+        self.last_car_pose.pose.pose.position.point.x = 0.0
+        self.last_car_pose.pose.pose.position.point.y = 0.0
+        self.last_car_pose.pose.pose.position.point.z = 0.0
 
 
         #max last_drive command at start to make safe initially
@@ -94,16 +107,15 @@ class CityStoppingController(Node):
         return:None sets instance variable
         """
         
-        self.last_drive_command = msg
+        self.last_car_pose = msg
+        x = self.last_car_pose.pose.pose.position.x
+        y = self.last_car_pose.pose.pose.position.y
 
-        #decrement stopsign cooldown if currently ignoring stopsigns and cooldown time remaining
-        if self.ignore_stopsigns and self.stopsign_cooldown:
-            self.stopsign_cooldown-=1
-        else: #stopsign cooldown complete
-            #reset
-            self.ignore_stopsigns = False
-            self.stopsign_brake_time = 10
-            self.stopsign_cooldown = 10
+        #update distances to stoplights
+        self.stoplight_1_dist = np.sqrt((x-self.light_1_pose[0])**2+(y-self.light_1_pose[1])**2)
+        self.stoplight_2_dist = np.sqrt((x-self.light_2_pose[0])**2+(y-self.light_2_pose[1])**2)
+        self.stoplight_3_dist = np.sqrt((x-self.light_3_pose[0])**2+(y-self.light_3_pose[1])**2)
+    
 
     def on_stopsign(self,msg):
         """
@@ -125,9 +137,15 @@ class CityStoppingController(Node):
         total_stop_d = speed*t_reac + (speed**2)/(2*u*grav)
         threshold = 1 #can adjust until stops consistently at 0.5-1m from light
 
+        #these are relative to robot frame
+        x = msg.x_pos
         y = msg.y_pos
 
         obj_dist = np.sqrt(x**2 + y**2)
+        #TODO calculate euclidean distance from (x,y) to each coord of stoplight, then if detecting red AND within
+        #threshold, publish stopping command. should theoretically publish as long as this is true
+        #could try and force to stop for at least 1-2 seconds before recheck to make sure it's stable
+
 
         if obj_dist <= (total_stop_d + threshold) and self.stopsign_brake_time:
             #start braking
@@ -159,16 +177,21 @@ class CityStoppingController(Node):
         grav = 9.8 
         total_stop_d = speed*t_reac + (speed**2)/(2*u*grav)
         threshold = 1 #can adjust threshold until car consistently stops within 0.5-1m
+        radius = total_stop_d + threshold
 
-        x = msg.x_pos
-        y = msg.y_pos
+        detects_stoplight = msg.data
+
+        # x = self.last_car_pose.pose.pose.position.point.x
+        # y = self.last_car_pose.pose.pose.position.point.y
         
-        obj_dist = np.sqrt(x**2 + y**2)
+        # obj_dist = np.sqrt(x**2 + y**2)
 
-        if obj_dist <= (total_stop_d + threshold):
-            error_msg = Float32()
-            error_msg.data = abs(obj_dist-(total_stop_d+threshold))/(total_stop_d+threshold)
-            self.error_pub.publish(error_msg)
+        if detects_stoplight and (self.light_1_pose <= radius or self.light_2_pose <= radius or self.light_3_pose <= radius):
+            # error_msg = Float32()
+            # error_msg.data = abs(obj_dist-(total_stop_d+threshold))/(total_stop_d+threshold)
+            # self.error_pub.publish(error_msg)
+            # above stuff was for experimental eval, might need to make later
+
             self.stop_msg.header.stamp = self.get_clock().now().to_msg()
             self.stop_msg.drive.steering_angle = self.last_drive_command.drive.steering_angle
             self.stop_pub.publish(self.stop_msg)

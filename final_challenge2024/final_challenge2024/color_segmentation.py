@@ -49,13 +49,6 @@ def cd_color_segmentation(img, template):
 
 	mask = cv2.inRange(hsv_img, red_low, red_high)
 	# cv2.imwrite("mask.jpg", mask) 
- 
-	# lower_white = (0, 0, 150)
-	# upper_white = (255, 30, 255)
-	# white_mask = cv2.inRange(hsv_img, lower_white, upper_white)
-
-	# combined_mask = cv2.bitwise_or(red_mask, white_mask)
-	# result = cv2.bitwise_and(img, img, mask=combined_mask)
 
 	# erode and dilate to get rid of noise
 	# structuring element is what erosion looks at - if everything inside is red, then it will be kept
