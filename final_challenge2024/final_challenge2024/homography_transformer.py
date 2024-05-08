@@ -51,7 +51,7 @@ class HomographyTransformer(Node):
         self.stopsign_pub = self.create_publisher(PhysicalLocation, "/relative_stopsign", 10)
         # self.sign_marker_pub = self.create_publisher(Marker, "/stopsign_marker", 1)
 
-        self.stoplight_pub = self.create_publisher(PhysicalLocation, "/relative_stoplight", 10)
+        # self.stoplight_pub = self.create_publisher(PhysicalLocation, "/relative_stoplight", 10)
         # self.light_marker_pub = self.create_publisher(Marker, "/stoplight_marker", 1)
 
 

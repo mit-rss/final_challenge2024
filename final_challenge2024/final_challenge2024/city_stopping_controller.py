@@ -5,7 +5,8 @@ from sensor_msgs.msg import LaserScan
 from ackermann_msgs.msg import AckermannDriveStamped
 from visualization_msgs.msg import Marker
 from math import pi
-from std_msgs.msg import Float32
+from std_msgs.msg import Float32, Bool
+from nav_msgs.msg import Odometry
 from stop_msgs.msg import PhysicalLocation
 
 # from safety_controller_pkg.visualization_tools import VisualizationTools
@@ -41,11 +42,16 @@ class CityStoppingController(Node):
         # Publishers and subscribers
         self.drive_subscriber = self.create_subscription(AckermannDriveStamped, self.DRIVE_TOPIC, self.log_drive_command, 10)
         self.stopsign_subscriber = self.create_subscription(PhysicalLocation, '/relative_stopsign', self.on_stopsign, 10)
-        self.stoplight_subscriber = self.create_subscription(PhysicalLocation, '/relative_stoplight', self.on_stoplight, 10)
+        # self.stoplight_subscriber = self.create_subscription(PhysicalLocation, '/relative_stoplight', self.on_stoplight, 10)
+        self.ground_truth_subscriber = self.create_subscription(Odometry, '/pf/pose/odom', self.log_car_pose, 1)
+
 
         self.stop_pub = self.create_publisher(AckermannDriveStamped, self.STOP_TOPIC, 1)
         self.error_pub = self.create_publisher(Float32,"city_stop_error",1)
         
+        #initiallize default last car pose to roughly the start point TODO (similar to last_drive_command)
+        self.last_car_pose = Odometry()
+
 
         #max last_drive command at start to make safe initially
         self.last_drive_command = AckermannDriveStamped()
@@ -67,6 +73,24 @@ class CityStoppingController(Node):
         """
         Keeps internal record of last drive command issued
         msg:AckermannDriveStamped - drive command issued by wall follower
+        return:None sets instance variable
+        """
+        
+        self.last_drive_command = msg
+
+        #decrement stopsign cooldown if currently ignoring stopsigns and cooldown time remaining
+        if self.ignore_stopsigns and self.stopsign_cooldown:
+            self.stopsign_cooldown-=1
+        else: #stopsign cooldown complete
+            #reset
+            self.ignore_stopsigns = False
+            self.stopsign_brake_time = 10
+            self.stopsign_cooldown = 10
+
+    def log_car_pose(self,msg):
+        """
+        Keeps internal record of ground truth pose of the car
+        msg:Odometry - publishes Odometry message with msg.pose
         return:None sets instance variable
         """
         
