@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 
 
 
-class TestSafetyController(Node):
+class TestStopController(Node):
     def __init__(self):
         super().__init__("test_safety_real")
         self.declare_parameter("drive_topic", "/drive") 
