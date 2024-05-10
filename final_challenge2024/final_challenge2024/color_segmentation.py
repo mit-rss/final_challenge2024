@@ -59,7 +59,7 @@ def cd_color_segmentation(img, template):
 	mask1 = cv2.inRange(hsv_img, red_low1, red_high1)
 	mask2 = cv2.inRange(hsv_img, lower_red2, upper_red2)
 
-	combined_mask = cv2.bitwise_or(red_mask1, red_mask2)
+	combined_mask = cv2.bitwise_or(mask1, mask2)
 
 
 	# cv2.imwrite("mask.jpg", mask) 
