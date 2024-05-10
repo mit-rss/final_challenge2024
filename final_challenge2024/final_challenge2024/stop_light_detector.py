@@ -52,6 +52,9 @@ class StoplightDetector(Node):
         #################################
 
         image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
+        h,w = image.shape[:2] #mask top and bottom
+        cv2.rectangle(image,(0,0),(w,int(h*.4)),(0,0,0),-1) #top rectangle
+        cv2.rectangle(image, (0, h-int(h*.4)), (w, h), (0, 0, 0), -1)#bottom rectangle
         detects_red_msg = Bool()
         detects_red_msg.data = False
 

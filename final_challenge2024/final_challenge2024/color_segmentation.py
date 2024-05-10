@@ -37,9 +37,9 @@ def cd_color_segmentation(img, template):
 	bounding_box = (0,0,0,0)
 	hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-	h,w = hsv_img.shape[:2] #mask top and bottom
-	cv2.rectangle(hsv_img,(0,0),(w,int(h*.4)),(0,0,0),-1) #top rectangle
-	cv2.rectangle(hsv_img, (0, h-int(h*.4)), (w, h), (0, 0, 0), -1)#bottom rectangle
+	# h,w = hsv_img.shape[:2] #mask top and bottom
+	# cv2.rectangle(hsv_img,(0,0),(w,int(h*.4)),(0,0,0),-1) #top rectangle
+	# cv2.rectangle(hsv_img, (0, h-int(h*.4)), (w, h), (0, 0, 0), -1)#bottom rectangle
 
 
 	# cv2.imwrite("hsv.jpg", hsv_img) 
