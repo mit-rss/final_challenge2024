@@ -19,9 +19,9 @@ import matplotlib.pyplot as plt
 
 
 
-class TestStopController(Node):
+class YeetNode(Node):
     def __init__(self):
-        super().__init__("test_safety_real")
+        super().__init__("yeet_node")
         self.declare_parameter("drive_topic", "/drive") 
         self.declare_parameter("base_frame","base_link")
 
@@ -47,7 +47,7 @@ class TestStopController(Node):
 
 def main():
     rclpy.init()
-    test = TestSafetyController()
+    test = YeetNode()
     test.test_basic_forward(8.0)
 
     rclpy.spin(test)

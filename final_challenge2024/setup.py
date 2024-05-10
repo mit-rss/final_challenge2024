@@ -30,6 +30,7 @@ setup(
             'stop_light_detector = final_challenge2024.stop_light_detector:main',
             'stop_detector = final_challenge2024.stop_detector:main',
             'track_simulator = final_challenge2024.track_racing.track_simulator:main',
+            'yeet_node = final_challenge2024.yeet_node:main',
             'hello = final_challenge2024.hello:main'
         ],
     },

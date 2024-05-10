@@ -143,9 +143,6 @@ class CityStoppingController(Node):
 
         obj_dist = np.sqrt(x**2 + y**2)
         self.get_logger().info("STOPPING FOR STOP SIGN")
-        #TODO calculate euclidean distance from (x,y) to each coord of stoplight, then if detecting red AND within
-        #threshold, publish stopping command. should theoretically publish as long as this is true
-        #could try and force to stop for at least 1-2 seconds before recheck to make sure it's stable
 
 
         if obj_dist <= (total_stop_d + threshold) and self.stopsign_brake_time:
