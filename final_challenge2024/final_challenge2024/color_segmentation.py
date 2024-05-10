@@ -50,22 +50,30 @@ def cd_color_segmentation(img, template):
 	#red_high = (18, 255, 255)	
 
 	#basically kept this the same, will adjust
-	red_low = (170, 168, 168)
-	red_high = (10, 255, 255)	
+	red_low1 = (-10, 168, 168)
+	red_high1 = (10, 255, 255)	
 
-	mask = cv2.inRange(hsv_img, red_low, red_high)
+	lower_red2 = (170, 100, 100)  # Adjusted lower range for wrapped values
+	upper_red2 = (180, 255, 255)  # Adjusted upper range for wrapped values
+
+	mask1 = cv2.inRange(hsv_img, red_low1, red_high1)
+	mask2 = cv2.inRange(hsv_img, lower_red2, upper_red2)
+
+	combined_mask = cv2.bitwise_or(red_mask1, red_mask2)
+
+
 	# cv2.imwrite("mask.jpg", mask) 
 
 	# erode and dilate to get rid of noise
 	# structuring element is what erosion looks at - if everything inside is red, then it will be kept
 	kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
-	mask = cv2.erode(mask, kernel, iterations=1)
+	combined_mask = cv2.erode(combined_mask, kernel, iterations=1)
 	# cv2.imwrite("erode.jpg", mask) 
-	mask = cv2.dilate(mask, kernel, iterations=2)
+	combined_mask = cv2.dilate(combined_mask, kernel, iterations=2)
 	# cv2.imwrite("dilate.jpg", mask) 
 
 	# returns list of contours and hiearchy, retr ignores inside countours, approx is for compression
-	contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+	contours, _ = cv2.findContours(combined_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 	if len(contours) != 0:
 		biggest_contour = max(contours, key = cv2.contourArea)
 		x, y, w, h = cv2.boundingRect(biggest_contour)
