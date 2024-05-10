@@ -1,0 +1,16 @@
+<launch>
+
+  <node pkg="final_challenge2024" name="city_stopping_controller" exec="city_stopping_controller" output="screen">
+  </node>
+
+  <node pkg="final_challenge2024" name="homography_transformer" exec="homography_transformer" output="screen">
+  </node>
+
+  <node pkg="final_challenge2024" name="stop_light_detector" exec="stop_light_detector" output="screen">
+  </node>
+
+  <node pkg="final_challenge2024" name="stop_detector" exec="stop_detector" output="screen">
+  </node>
+  <!-- <node pkg="image_transport" name="republish" exec="republish" args="raw in:=/cone_debug_img out:=/cone_debug_img_compressed" output="screen"></node> -->
+
+</launch>
