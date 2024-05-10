@@ -67,9 +67,9 @@ def cd_color_segmentation(img, template):
 	# erode and dilate to get rid of noise
 	# structuring element is what erosion looks at - if everything inside is red, then it will be kept
 	kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
-	combined_mask = cv2.erode(combined_mask, kernel, iterations=1)
+	# combined_mask = cv2.erode(combined_mask, kernel, iterations=1)
 	# cv2.imwrite("erode.jpg", mask) 
-	combined_mask = cv2.dilate(combined_mask, kernel, iterations=2)
+	# combined_mask = cv2.dilate(combined_mask, kernel, iterations=2)
 	# cv2.imwrite("dilate.jpg", mask) 
 
 	# returns list of contours and hiearchy, retr ignores inside countours, approx is for compression
@@ -81,6 +81,7 @@ def cd_color_segmentation(img, template):
   
 		#modify to match that of stop light detector
 		bounding_box = (x, y, x+w, y+h)
+		
 	else:
 		#comment out later?
 		print("Light not found.")
